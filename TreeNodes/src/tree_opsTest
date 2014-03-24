@@ -1,0 +1,184 @@
+/*
+ * homework411_test.cpp
+ *
+ *  Created on: Oct 28, 2013
+ *      Author: Scott
+ */
+
+#include <algorithm>
+#include <iostream>
+#include <string>
+#include <vector>
+using namespace std;
+
+#define CATCH_CONFIG_MAIN
+#include "catch.hpp"
+
+#include "hw411_treeset.hpp"
+
+class TreeTest {
+public:
+    TreeTest() {
+        for (auto x = refData.begin(); x != refData.end(); ++x)
+            items.insert(*x);
+    }
+
+    vector<string> refData {
+        "ram",
+        "memory",
+        "keyboard",
+        "cpu",
+        "gpu",
+        "mouse",
+        "monitor",
+        "usb",
+        "wireless",
+        "ssd",
+        "DVD",
+        "LCD",
+        "VGA",
+        "bluetooth",
+        "HDMI",
+        "speakers",
+        "videocam",
+        "microphone",
+        "power",
+        "firewire"};
+    gvsu::TreeSet<string> items;
+};
+
+
+TEST_CASE_METHOD (TreeTest, "contains")
+{
+    CHECK_NOTHROW(items.contains("power"));
+    for (auto p = refData.begin(); p != refData.end(); ++p)
+        REQUIRE (items.contains(*p));
+    REQUIRE_FALSE (items.contains("POWER"));
+}
+
+TEST_CASE_METHOD (TreeTest, "insert should not accept duplicate")
+{
+    for (auto p = refData.begin(); p != refData.end(); ++p)
+        REQUIRE_FALSE(items.insert(*p));
+}
+
+TEST_CASE_METHOD (TreeTest, "remove")
+{
+    cout << items << endl;
+    for (auto p = refData.begin(); p != refData.end(); ++p)
+    {
+        items.remove(*p);
+        REQUIRE_FALSE (items.contains(*p));
+    }
+}
+
+TEST_CASE_METHOD (TreeTest, "begin on empty tree")
+{
+    gvsu::TreeSet<string> nothing;
+
+    CHECK(nothing.begin() == nothing.end());
+
+}
+
+TEST_CASE_METHOD (TreeTest, "begin should return an iterator to the min value")
+{
+    sort(refData.begin(), refData.end());
+    CHECK(*items.begin() == refData.front());
+
+}
+
+TEST_CASE_METHOD (TreeTest, "min or max ")
+{
+    sort(refData.begin(), refData.end());
+    CHECK(items.findMax() == refData.back());
+}
+
+TEST_CASE_METHOD (TreeTest, "iterator++ should advance to the next logical")
+{
+    sort(refData.begin(), refData.end());
+    auto two = items.begin();
+    for (auto one = refData.begin(); one != refData.end(); ++one, ++two)
+    {
+        CHECK (*one == *two);
+    }
+}
+
+TEST_CASE_METHOD(TreeTest, "Copy Constructor")
+{
+    gvsu::TreeSet<std::string> backup {items};
+    sort(refData.begin(), refData.end());
+    auto two = backup.begin();
+    for (auto one = refData.begin(); one != refData.end(); ++one, ++two)
+    {
+        CHECK (*one == *two);
+    }
+}
+
+TEST_CASE_METHOD(TreeTest, "Move Constructor")
+{
+    gvsu::TreeSet<std::string> backup {std::move(items)};
+    sort(refData.begin(), refData.end());
+    auto two = backup.begin();
+    for (auto one = refData.begin(); one != refData.end(); ++one, ++two)
+    {
+        CHECK (*one == *two);
+    }
+    CHECK (items.begin() == items.end());
+}
+
+TEST_CASE_METHOD(TreeTest, "Copy Assignment")
+{
+    gvsu::TreeSet<std::string> backup;
+    backup = items;
+    auto two = backup.begin();
+    for (auto one = items.begin(); one != items.end(); ++one, ++two)
+    {
+        CHECK (*one == *two);
+    }
+}
+
+TEST_CASE_METHOD(TreeTest, "Move Assignment")
+{
+    gvsu::TreeSet<std::string> backup;
+    backup = std::move(items);
+    auto two = backup.begin();
+    for (auto one = items.begin(); one != items.end(); ++one, ++two)
+    {
+        CHECK (*one == *two);
+    }
+    CHECK (items.begin() == items.end());
+}
+
+TEST_CASE_METHOD(TreeTest, "Tree counters ")
+{
+    // Tester function for Question 4.13 a-c
+    gvsu::TreeSet<string> ctest;
+
+    CHECK (ctest.numberOfNodes() == 0);
+    CHECK (ctest.numberOfLeaves() == 0);
+    CHECK (ctest.numberOfFullNodes() == 0);
+    int k = 0;
+    for (auto x = refData.begin(); x != refData.end(); ++x)
+    {
+        k++;
+        ctest.insert (*x);
+        int F = ctest.numberOfFullNodes();
+        int L = ctest.numberOfLeaves();
+        CHECK (ctest.numberOfNodes() == k);
+        CHECK (L == F + 1);
+    }
+}
+
+TEST_CASE_METHOD(TreeTest, "level order")
+{
+    vector<string> level = items.levelOrder();
+    CHECK (level.size() > 0);
+    vector<string> expected {"ram", "memory", "usb", "keyboard", "mouse",
+        "ssd", "wireless", "cpu", "monitor", "power", "speakers",
+        "videocam", "DVD", "gpu", "microphone", "LCD", "firewire",
+        "HDMI", "VGA", "bluetooth"};
+    CHECK (level == expected);
+}
+
+
+
